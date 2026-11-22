@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI English Tutor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes soundwave {
+        0%, 100% { height: 10px; opacity: 0.5; }
+        50% { height: 40px; opacity: 1; }
+      }
+      .bar { width: 6px; background: #60a5fa; border-radius: 4px; display: inline-block; margin: 0 2px; }
+      .speaking .bar { animation: soundwave 1.2s infinite ease-in-out; }
+      .speaking .bar:nth-child(2) { animation-delay: 0.2s; }
+      .speaking .bar:nth-child(3) { animation-delay: 0.4s; }
+      .speaking .bar:nth-child(4) { animation-delay: 0.1s; }
+    </style>
+  </head>
+  <body class="bg-gray-900 text-white h-screen flex">
+    
+    <!-- Left: Voice Agent UI -->
+    <div class="w-1/2 flex flex-col items-center justify-center border-r border-gray-700">
+      <div id="visualizer" class="h-16 flex items-center justify-center mb-4 transition-all">
+        <div class="bar h-2"></div><div class="bar h-2"></div><div class="bar h-2"></div><div class="bar h-2"></div>
+      </div>
+      <div id="mic-indicator" class="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mb-8 transition-all text-4xl shadow-[0_0_20px_rgba(37,99,235,0.5)]">
+        🎤
+      </div>
+      <button id="start-btn" class="px-6 py-2 bg-green-500 rounded font-bold text-gray-900 transition-colors">Start Session</button>
+    </div>
+
+    <!-- Right: Transcripts and Dictionary -->
+    <div class="w-1/2 p-6 flex flex-col gap-4">
+      <div class="h-1/2 bg-gray-800 rounded p-4 overflow-y-auto">
+        <h2 class="text-xl font-bold mb-2">Live Conversation</h2>
+        <div id="transcript-box" class="text-sm text-gray-300 flex flex-col gap-2"></div>
+      </div>
+      <div class="h-1/2 bg-gray-800 rounded p-4 overflow-y-auto">
+        <h2 class="text-xl font-bold mb-2">Vocabulary & Grammar</h2>
+        <div id="dictionary-box" class="text-sm text-gray-300 flex flex-col gap-2"></div>
+      </div>
+    </div>
+    
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
