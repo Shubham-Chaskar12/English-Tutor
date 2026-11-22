@@ -7,41 +7,156 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @keyframes soundwave {
-        0%, 100% { height: 10px; opacity: 0.5; }
-        50% { height: 40px; opacity: 1; }
+        0%, 100% { height: 4px; opacity: 0.4; }
+        50% { height: 18px; opacity: 1; }
       }
-      .bar { width: 6px; background: #60a5fa; border-radius: 4px; display: inline-block; margin: 0 2px; }
-      .speaking .bar { animation: soundwave 1.2s infinite ease-in-out; }
-      .speaking .bar:nth-child(2) { animation-delay: 0.2s; }
-      .speaking .bar:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes pulseRing {
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.08); opacity: 0.2; }
+      }
+      .bar { width: 4px; background: #60a5fa; border-radius: 99px; display: inline-block; margin: 0 2px; transition: height 0.2s; }
+      .speaking .bar { animation: soundwave 0.9s infinite ease-in-out; }
+      .speaking .bar:nth-child(2) { animation-delay: 0.15s; }
+      .speaking .bar:nth-child(3) { animation-delay: 0.3s; }
       .speaking .bar:nth-child(4) { animation-delay: 0.1s; }
+      .speaking .bar:nth-child(5) { animation-delay: 0.25s; }
+      .avatar-pulse { animation: pulseRing 2s infinite ease-in-out; }
     </style>
   </head>
-  <body class="bg-gray-900 text-white h-screen flex">
-    
-    <!-- Left: Voice Agent UI -->
-    <div class="w-1/2 flex flex-col items-center justify-center border-r border-gray-700">
-      <div id="visualizer" class="h-16 flex items-center justify-center mb-4 transition-all">
-        <div class="bar h-2"></div><div class="bar h-2"></div><div class="bar h-2"></div><div class="bar h-2"></div>
+  <body class="bg-gray-900 text-white h-screen overflow-hidden flex">
+
+    <!-- Left: Avatar & Controls -->
+    <div class="relative w-1/2 flex flex-col items-center justify-center border-r border-gray-800 p-6">
+      
+      <!-- Top-left Settings Button -->
+      <button id="open-settings-btn" class="absolute top-5 left-5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm font-medium flex items-center gap-2 cursor-pointer transition-colors">
+        ⚙️ Settings & Progress
+      </button>
+
+      <!-- Active Topic Pill -->
+      <div id="topic-badge" class="mb-6 px-3 py-1 bg-gray-800 border border-gray-700 rounded-full text-xs text-blue-300">
+        Topic: Daily Life & Casual Chat
       </div>
-      <div id="mic-indicator" class="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center mb-8 transition-all text-4xl shadow-[0_0_20px_rgba(37,99,235,0.5)]">
-        🎤
+
+      <!-- Expressive Tutor Avatar -->
+      <div class="relative flex items-center justify-center mb-4">
+        <div id="avatar-ring" class="absolute w-44 h-44 rounded-full bg-blue-500/20 hidden avatar-pulse"></div>
+        <div id="avatar-container" class="relative w-36 h-36 rounded-full bg-gradient-to-br from-blue-600 to-indigo-800 border-4 border-gray-700 shadow-2xl flex items-center justify-center overflow-hidden transition-all duration-300">
+          <!-- Clean SVG Tutor Avatar -->
+          <svg viewBox="0 0 120 120" class="w-32 h-32">
+            <!-- Head / Face -->
+            <circle cx="60" cy="54" r="30" fill="#fde68a"/>
+            <!-- Hair -->
+            <path d="M30 50 C30 22, 90 22, 90 50 C85 36, 35 36, 30 50 Z" fill="#1e293b"/>
+            <!-- Eyes -->
+            <circle cx="49" cy="52" r="3.5" fill="#1e293b"/>
+            <circle cx="71" cy="52" r="3.5" fill="#1e293b"/>
+            <!-- Mouth (changes when speaking) -->
+            <path id="avatar-mouth" d="M50 66 Q60 73 70 66" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <!-- Shoulders -->
+            <path d="M22 115 C22 90, 98 90, 98 115 Z" fill="#3b82f6"/>
+          </svg>
+        </div>
       </div>
-      <button id="start-btn" class="px-6 py-2 bg-green-500 rounded font-bold text-gray-900 transition-colors">Start Session</button>
+
+      <!-- Status Label -->
+      <p id="status-text" class="text-xs text-gray-400 mb-2 h-4">Ready to chat</p>
+
+      <!-- Compact Soundwave Visualizer -->
+      <div id="visualizer" class="h-6 flex items-center justify-center mb-6">
+        <div class="bar h-1.5"></div>
+        <div class="bar h-1.5"></div>
+        <div class="bar h-1.5"></div>
+        <div class="bar h-1.5"></div>
+        <div class="bar h-1.5"></div>
+      </div>
+
+      <!-- Start / Stop Button -->
+      <button id="start-btn" class="px-7 py-2.5 bg-green-500 hover:bg-green-400 rounded-lg font-bold text-gray-900 transition-colors cursor-pointer shadow-lg">
+        Start Session
+      </button>
     </div>
 
     <!-- Right: Transcripts and Dictionary -->
-    <div class="w-1/2 p-6 flex flex-col gap-4">
-      <div class="h-1/2 bg-gray-800 rounded p-4 overflow-y-auto">
-        <h2 class="text-xl font-bold mb-2">Live Conversation</h2>
-        <div id="transcript-box" class="text-sm text-gray-300 flex flex-col gap-2"></div>
+    <div class="w-1/2 h-screen p-6 flex flex-col gap-4 overflow-hidden">
+      
+      <!-- Live Conversation Box -->
+      <div class="relative flex-1 min-h-0 bg-gray-800 rounded-lg p-4 flex flex-col border border-gray-700/50">
+        <div class="mb-2 pb-2 border-b border-gray-700">
+          <h2 class="text-lg font-bold">Live Conversation</h2>
+        </div>
+        <div id="transcript-box" class="flex-1 overflow-y-auto pr-2 text-sm text-gray-300 flex flex-col gap-2"></div>
+        <button id="scroll-chat-btn" class="hidden absolute bottom-4 right-6 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-full shadow-lg cursor-pointer">
+          ↓ Current Chat
+        </button>
       </div>
-      <div class="h-1/2 bg-gray-800 rounded p-4 overflow-y-auto">
-        <h2 class="text-xl font-bold mb-2">Vocabulary & Grammar</h2>
-        <div id="dictionary-box" class="text-sm text-gray-300 flex flex-col gap-2"></div>
+
+      <!-- Vocabulary & Grammar Box -->
+      <div class="relative flex-1 min-h-0 bg-gray-800 rounded-lg p-4 flex flex-col border border-gray-700/50">
+        <div class="mb-2 pb-2 border-b border-gray-700">
+          <h2 class="text-lg font-bold">Vocabulary & Grammar Coach</h2>
+        </div>
+        <div id="dictionary-box" class="flex-1 overflow-y-auto pr-2 text-sm text-gray-300 flex flex-col gap-2"></div>
+        <button id="scroll-dict-btn" class="hidden absolute bottom-4 right-6 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-full shadow-lg cursor-pointer">
+          ↓ Latest
+        </button>
       </div>
     </div>
-    
+
+    <!-- Settings & Progress Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-md p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+          <h3 class="text-lg font-bold">Settings & Progress</h3>
+          <button id="close-settings-btn" class="text-gray-400 hover:text-white text-xl cursor-pointer">&times;</button>
+        </div>
+
+        <div class="flex flex-col gap-4 text-sm">
+          <!-- Topic Selector -->
+          <div>
+            <label class="block text-gray-300 font-medium mb-1">Conversation Topic</label>
+            <select id="topic-select" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
+              <option value="Daily Life & Casual Chat">Daily Life & Casual Chat</option>
+              <option value="Job Interview & Career">Job Interview & Career</option>
+              <option value="Technology & Engineering">Technology & Engineering</option>
+              <option value="Travel & Real-World Scenarios">Travel & Real-World Scenarios</option>
+            </select>
+          </div>
+
+          <!-- Voice Selector -->
+          <div>
+            <label class="block text-gray-300 font-medium mb-1">Tutor Voice (Natural Voices Listed First)</label>
+            <div class="flex gap-2">
+              <select id="voice-select" class="flex-1 bg-gray-900 border border-gray-700 rounded p-2 text-white text-xs"></select>
+              <button id="test-voice-btn" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-semibold cursor-pointer">Test</button>
+            </div>
+          </div>
+
+          <!-- Speech Speed -->
+          <div>
+            <label class="block text-gray-300 font-medium mb-1">Speaking Speed: <span id="rate-value">0.95x</span></label>
+            <input id="rate-slider" type="range" min="0.7" max="1.3" step="0.05" value="0.95" class="w-full cursor-pointer" />
+          </div>
+
+          <!-- Progress Stats from SQLite -->
+          <div class="mt-2 pt-3 border-t border-gray-700">
+            <h4 class="font-bold text-blue-300 mb-2">📊 Your Learning Progress</h4>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+              <div class="bg-gray-900 p-2.5 rounded border border-gray-700 text-center">
+                <p id="stat-mistakes" class="text-xl font-bold text-red-400">0</p>
+                <p class="text-xs text-gray-400">Mistakes Caught</p>
+              </div>
+              <div class="bg-gray-900 p-2.5 rounded border border-gray-700 text-center">
+                <p id="stat-words" class="text-xl font-bold text-blue-400">0</p>
+                <p class="text-xs text-gray-400">Words Learned</p>
+              </div>
+            </div>
+            <div id="recent-mistakes-list" class="max-h-28 overflow-y-auto text-xs text-gray-300 flex flex-col gap-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/main.js"></script>
   </body>
 </html>
